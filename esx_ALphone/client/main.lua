@@ -150,8 +150,8 @@ AddEventHandler('esx_phone:addContact', function(name, phoneNumber)
 
 end)
 
-RegisterNetEvent('esx_phone:deleteContact')
-AddEventHandler('esx_phone:deleteContact', function(name, phoneNumber)
+RegisterNetEvent('esx_phone:removeContact')
+AddEventHandler('esx_phone:removeContact', function(name, phoneNumber)
 
   table.remove(PhoneData.contacts, {
     name   = name,
