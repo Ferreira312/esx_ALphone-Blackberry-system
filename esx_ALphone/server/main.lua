@@ -385,6 +385,81 @@ AddEventHandler('esx_phone:addPlayerContact', function(phoneNumber, contactName)
 
 end)
 
+-----------------Remove?
+
+RegisterServerEvent('esx_phone:removePlayerContact')
+AddEventHandler('esx_phone:removePlayerContact', function(phoneNumber, contactName)
+
+  local _source     = source
+  local xPlayer     = ESX.GetPlayerFromId(_source)
+  local foundNumber = false
+  local foundPlayer = nil
+
+  MySQL.Async.fetchAll(
+    'SELECT phone_number FROM users WHERE phone_number = @number',
+    {
+      ['@number'] = phoneNumber
+    },
+    function(result)
+
+      if result[1] ~= nil then
+        foundNumber = true
+      end
+
+      if foundNumber then
+
+        if phoneNumber == xPlayer.get('phoneNumber') then
+          TriggerClientEvent('esx:showNotification', _source, 'Nao pode remover o seu numero')
+        else
+
+          local hasAlreadyAdded = false
+          local contacts        = xPlayer.get('contacts')
+
+          for i=1, #contacts, 1 do
+            if contacts[i].number == phoneNumber then
+              hasAlreadyAdded = true
+            end
+          end
+
+          if hasAlreadyAdded then
+            TriggerClientEvent('esx:showNotification', _source, 'O numero foi eliminado')
+              table.remove(contacts, {
+              name   = contactName,
+              number = phoneNumber,
+            
+            xPlayer.set('contacts', contacts)
+
+            MySQL.Async.execute(
+              'DELETE FROM user_contacts WHERE number = @number and identifier = @identifier',
+              {
+                ['@identifier'] = xPlayer.identifier,
+                ['@name']       = contactName,
+                ['@number']     = phoneNumber
+              },
+              function(rowsChanged)
+
+                TriggerClientEvent('esx:showNotification', _source, 'Contacto Removido')
+
+                TriggerClientEvent('esx_phone:removeContact', _source, contactName, phoneNumber)
+              end
+            )
+
+            }
+          else
+              
+            TriggerClientEvent('esx:showNotification', _source, 'O numero nao se encontra na sua lista')
+
+          
+          end
+        end
+
+      else
+        TriggerClientEvent('esx:showNotification', source, 'O numero nao existe')
+      end
+
+    end)
+end)
+
 RegisterServerEvent('esx_phone:stopDispatch')
 AddEventHandler('esx_phone:stopDispatch', function(dispatchRequestId)
   TriggerClientEvent('esx_phone:stopDispatch', -1, dispatchRequestId, GetPlayerName(source))
