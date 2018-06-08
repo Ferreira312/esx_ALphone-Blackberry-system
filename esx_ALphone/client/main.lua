@@ -14,6 +14,7 @@ local GUI                        = {}
 local PhoneData                  = {phoneNumber = 0, contacts = {}}
 local RegisteredMessageCallbacks = {}
 local ContactJustAdded           = false
+local ContactJustRemoved         = false
 local CurrentAction              = nil
 local CurrentActionMsg           = ''
 local CurrentActionData          = {}
@@ -144,6 +145,21 @@ AddEventHandler('esx_phone:addContact', function(name, phoneNumber)
 
   SendNUIMessage({
     contactAdded = true,
+    phoneData    = PhoneData
+  })
+
+end)
+
+RegisterNetEvent('esx_phone:deleteContact')
+AddEventHandler('esx_phone:deleteContact', function(name, phoneNumber)
+
+  table.remove(PhoneData.contacts, {
+    name   = name,
+    number = phoneNumber
+  })
+
+  SendNUIMessage({
+    contactDeleted = true,
     phoneData    = PhoneData
   })
 
@@ -348,6 +364,19 @@ RegisterNUICallback('add_contact', function(data, cb)
 
   if phoneNumber then
     TriggerServerEvent('esx_phone:addPlayerContact', phoneNumber, contactName)
+  end
+
+  cb('OK')
+
+end)
+
+RegisterNUICallback('remove_contact', function(data, cb)
+
+  local phoneNumber = tonumber(data.phoneNumber)
+  local contactName = tostring(data.contactName)
+
+  if phoneNumber then
+    TriggerServerEvent('esx_phone:removePlayerContact', phoneNumber, contactName)
   end
 
   cb('OK')
